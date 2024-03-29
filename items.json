@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Pikachu",
+    "description": "Electric",
+    "image": "pikachu.jpg",
+    "levelUpID": "30"
+  },
+  {
+    "id": 2,
+    "name": "Raichu",
+    "description": "Electric",
+    "image": "raichu.jpg",
+    "levelUpID": ""
+  },
+  {
+    "id": 3,
+    "name": "Gengar",
+    "description": "Ghost",
+    "image": "gengar.jpg",
+    "levelUpID": ""
+  },
+  {
+    "id": 4,
+    "name": "Charmander",
+    "description": "Fire",
+    "image": "charmander",
+    "levelUpID": "charmeleon"
+  },
+  {
+    "id": 5,
+    "name": "Charmander",
+    "description": "Fire",
+    "image": "charmander",
+    "levelUpID": "charmeleon"
+  },
+  {
+    "id": 6,
+    "name": "Charmander",
+    "description": "Fire",
+    "image": "charmander",
+    "levelUpID": "charmeleon"
+  }
+]

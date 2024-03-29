@@ -1,0 +1,96 @@
+/*
+
+
+//Event Message Created ==>  check if message is bot or doesnt start with ! returns ==> 
+
+
+
+
+
+
+client.on("messageCreate", (msg) => {
+  if (msg.content === "!addItem") {
+    msg.channel.send(`What is the name of the item?`);
+  }
+}); 
+
+client.on('messageCreate', (message) => {
+  // Ignore messages from bots and messages that don't start with the prefix
+  if (message.author.bot || !message.content.startsWith(prefix)) return;
+  // Split the message content into command and arguments
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const command = args.shift().toLowerCase();
+
+  // Check if the command is 'store' and if the user has provided 4 elements
+  if (command === 'store' && args.length === 4) {
+    // Store the elements in an array
+    const elements = args;
+
+    // Respond to the user confirming the elements were stored
+    message.channel.send(`Elements stored: ${elements.join(', ')}`);
+  }
+});
+
+
+My Version
+
+//Listens for messages and decides if they are commands from a user
+client.on('message', message => {
+  if (message.author.bot || !message.content.startsWith(prefix)) return;
+
+  const args = message.content.slice(prefix.length).trim().split(/ +/); //Trims prefix and spaces, splits message into an array of arguments
+  const command = args.shift().toLowerCase(); //sets command as first argument
+
+  //INSERT MOD WHITELIST CHECK HERE!!!
+  runCommand(command, args);
+  });
+
+// Run command function
+function runCommand(command, args) {
+  switch (command) {
+    case 'store':
+      handleStoreCommand(args);
+      break;
+    // Add more cases for other commands if needed
+    default:
+      message.channel.send('Invalid command. Please use !help to see available commands.');
+  }
+});
+
+function handleStoreCommand(args) {
+  if (args.length >= 4) {
+    const elements = args.slice(0, 4);
+    message.channel.send(`Elements stored: ${elements.join(', ')}`);
+  } else {
+    message.channel.send('Insufficient arguments. Please provide at least 4 elements.');
+  }
+}
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/

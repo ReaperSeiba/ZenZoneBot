@@ -396,49 +396,47 @@ function handleModStatusCommand(message, args, command) {
 function handleViewUserCommand(message, args) {
   let userList = [];
   let notFoundList = [];
+  let userMessage = ""; // Initialize an empty string to store the final message
 
   // Check if no users are specified to view all users
   if (args.length === 0) {
     for (let i = 0; i < users.length; i++) {
-      userList.push(" " + users[i].username);
+      objectString = JSON.stringify(users[i]);
+      userList.push(" " + prettifyJSON(objectString));
     }
-    message.channel.send(
-      `Here is the list of users I am tracking: ${userList}`,
-    );
-    return;
-  }
-
-  // Check if too many users are requested
-  if (args.length > 5) {
+  } else if (args.length > 5) { // Check if too many users are requested
     message.channel.send(
       "Too many users requested. Please request a maximum of 5 users or leave arguments empty for a list of users",
     );
     return;
-  }
+  } else {
+    // Iterate over each argument
+    for (let i = 0; i < args.length; i++) {
+      // Check if the user exists
+      const existingUser = isExistingUser(args[i].replace(/"/g, ""));
 
-  // Iterate over each argument
-  for (let i = 0; i < args.length; i++) {
-    // Check if the user exists
-    const existingUser = isExistingUser(args[i].replace(/"/g, ""));
-
-    // If user exists, add to userList, otherwise add to notFoundList
-    if (existingUser.exists) {
-      objectString = JSON.stringify(users[existingUser.index]);
-      userList.push(" " + prettifyJSON(objectString));
-    } else {
-      notFoundList.push(args[i]);
+      // If user exists, add to userList, otherwise add to notFoundList
+      if (existingUser.exists) {
+        objectString = JSON.stringify(users[existingUser.index]);
+        userList.push(" " + prettifyJSON(objectString));
+      } else {
+        notFoundList.push(args[i]);
+      }
     }
   }
 
-  // Send message with found users
+  // Concatenate user information into a single message
   if (userList.length > 0) {
-    message.channel.send(`Here are the requested users: ${userList}`);
+    userMessage += `Here are the requested users:\n${userList.join("\n")}\n`;
   }
 
-  // Send message with users not found
+  // Add users not found to the message
   if (notFoundList.length > 0) {
-    message.channel.send(`These users could not be found: ${notFoundList}`);
+    userMessage += `These users could not be found: ${notFoundList.join(", ")}\n`;
   }
+
+  // Send the final message
+  message.channel.send(userMessage);
 }
 
 //deletes a suggestion @ index

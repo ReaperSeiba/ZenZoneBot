@@ -104,15 +104,17 @@ client.on("ready", () => {
 //Moderator Command List
 const modCommands = [
   " !store", //stores an item requires 4 arguments enclosed in quotes
-  " !edit",
-  " !view",
-  " !remove",
+  " !edit", //edits a property or properties of an item, useful to reuse a removed slot
+  " !view", //views the item list or up to 5 specific items
+  " !remove", //removes an item, does not remove item index, also removes all instances of item from users
   " !addMod", // isMod = true;
   " !removeMod", // isMod = false;
   " !viewUser", // displays a user's information based on username, user id, or number
-  " !deleteSuggestion",
-  " !give",
-  " !levelUp",
+  " !deleteSuggestion", //removes specified suggestion based on index or name
+  " !give", //gives an item to a specified user
+  " !take", //takes an item from a specified user
+  " !viewSuggestions", //views the suggestion list with no arguments, views specific suggestions up to 5 of them with arguments
+  " !levelUp", //levels up a user's item, requires 2 arguments, user id followed by item name
 ];
 //User Private Command List
 const userPrivateCommands = [
@@ -404,7 +406,8 @@ function handleViewUserCommand(message, args) {
       objectString = JSON.stringify(users[i]);
       userList.push(" " + prettifyJSON(objectString));
     }
-  } else if (args.length > 5) { // Check if too many users are requested
+  } else if (args.length > 5) {
+    // Check if too many users are requested
     message.channel.send(
       "Too many users requested. Please request a maximum of 5 users or leave arguments empty for a list of users",
     );
@@ -427,12 +430,14 @@ function handleViewUserCommand(message, args) {
 
   // Concatenate user information into a single message
   if (userList.length > 0) {
-    userMessage += `Here are the requested users:\n${userList.join("\n")}\n`;
+    userMessage += `Here are the requested users:\n${userList.join("\n")}\n`; //joins the array of users into a string seperated line by line with \n
   }
 
   // Add users not found to the message
   if (notFoundList.length > 0) {
-    userMessage += `These users could not be found: ${notFoundList.join(", ")}\n`;
+    userMessage += `These users could not be found: ${notFoundList.join(
+      ", ",
+    )}\n`;
   }
 
   // Send the final message
@@ -443,6 +448,8 @@ function handleViewUserCommand(message, args) {
 function handleDeleteSuggestionCommand(message) {}
 //gives an item to a user
 function handleGiveCommand(message) {}
+//takes an item from a user
+function handleTakeCommand(message) {}
 //level up an item
 function handleLevelUpCommand(message) {}
 

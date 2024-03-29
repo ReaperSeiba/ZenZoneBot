@@ -55,6 +55,19 @@ function writeJsonFile(filePath, arr) {
   }
 }
 
+//function to make JSON strings more readable as discord messages
+
+function prettifyJSON(jsonString) {
+  try {
+    const jsonObject = JSON.parse(jsonString);
+    const prettyString = JSON.stringify(jsonObject, null, 2);
+    return `\`\`\`json\n${prettyString}\n\`\`\``;
+  } catch (error) {
+    console.error("Error parsing JSON:", error);
+    return "Error parsing JSON";
+  }
+}
+
 const client = new Discord.Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -196,9 +209,9 @@ function runCommand(command, message, args) {
         handleModStatusCommand(message, args, "removemod");
       }
       break;
-    case "viewmod":
+    case "viewuser":
       if (checkModStatus(message)) {
-        handleViewUserCommand(message);
+        handleViewUserCommand(message, args);
       }
       break;
     case "deletesuggestion":
@@ -379,8 +392,55 @@ function handleModStatusCommand(message, args, command) {
       message.channel.send("Invalid command.");
   }
 }
-//views moderator list
-function handleViewUserCommand(message) {}
+//views a list of all known users or a detailed view of up to 5 users
+function handleViewUserCommand(message, args) {
+  let userList = [];
+  let notFoundList = [];
+
+  // Check if no users are specified to view all users
+  if (args.length === 0) {
+    for (let i = 0; i < users.length; i++) {
+      userList.push(" " + users[i].username);
+    }
+    message.channel.send(
+      `Here is the list of users I am tracking: ${userList}`,
+    );
+    return;
+  }
+
+  // Check if too many users are requested
+  if (args.length > 5) {
+    message.channel.send(
+      "Too many users requested. Please request a maximum of 5 users or leave arguments empty for a list of users",
+    );
+    return;
+  }
+
+  // Iterate over each argument
+  for (let i = 0; i < args.length; i++) {
+    // Check if the user exists
+    const existingUser = isExistingUser(args[i].replace(/"/g, ""));
+
+    // If user exists, add to userList, otherwise add to notFoundList
+    if (existingUser.exists) {
+      objectString = JSON.stringify(users[existingUser.index]);
+      userList.push(" " + prettifyJSON(objectString));
+    } else {
+      notFoundList.push(args[i]);
+    }
+  }
+
+  // Send message with found users
+  if (userList.length > 0) {
+    message.channel.send(`Here are the requested users: ${userList}`);
+  }
+
+  // Send message with users not found
+  if (notFoundList.length > 0) {
+    message.channel.send(`These users could not be found: ${notFoundList}`);
+  }
+}
+
 //deletes a suggestion @ index
 function handleDeleteSuggestionCommand(message) {}
 //gives an item to a user

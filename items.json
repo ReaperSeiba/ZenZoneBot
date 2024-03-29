@@ -40,5 +40,12 @@
     "description": "Fire",
     "image": "charmander",
     "levelUpID": "charmeleon"
+  },
+  {
+    "id": 7,
+    "name": "Fish",
+    "description": "Water",
+    "image": "looks like <><",
+    "levelUpID": ""
   }
 ]

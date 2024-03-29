@@ -1,14 +1,17 @@
 const Discord = require("discord.js");
 const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
+const channelId = "1220057482475339906"; //main channel for interacting with the bot, bot is currently not limited to this channel, just says hi here when it's alive for now and goodbye when its shut off
 
 // TEMPORARY DATA STORAGE ===========================================
 //These formats will be used for a permanent Json file.
 
-// items is an array of objects, each aobject contains id#, name, description, image file path, levelUpID. ID# is its position in the items json file or temporary array storage. Example items[0] = [0, "Item Name", "Item Description", "Item Image", null]
+// items is an array of objects, each object contains id#, name, description, image file path, levelUpID. ID# is its position in the items json file or temporary array storage. Example items[0] = [0, "Item Name", "Item Description", "Item Image", null]
 let items = [];
 //Users is an array of objects containing user number, user id, self updating username, isMod, an array of items they have, and an array of known server display names capped 3. Example users[0] = [0, true, ["Item ID", "Item ID"]]
 let users = [];
+// suggestions is an array of obejcts, each object contains id#, name, description, visual description
+let suggestions = [];
 
 //JSON FUNCTIONS ====================================================
 
@@ -26,6 +29,13 @@ if (!fs.existsSync(usersFilePath)) {
   fs.writeFileSync(usersFilePath, JSON.stringify(temporaryData));
 }
 
+//check if suggestions.json exists, if not, create it
+const suggestionsFilePath = "./suggestions.json"; //file path for Suggestions.json
+if (!fs.existsSync(suggestionsFilePath)) {
+  const temporaryData = []; // Example JSON data
+  fs.writeFileSync(suggestionsFilePath, JSON.stringify(temporaryData));
+}
+
 //function to sync an array with a JSON file
 function loadJsonFile(filePath, arr) {
   if (fs.existsSync(filePath)) {
@@ -39,8 +49,7 @@ function loadJsonFile(filePath, arr) {
 function writeJsonFile(filePath, arr) {
   try {
     fs.writeFileSync(filePath, JSON.stringify(arr, null, 2));
-    console.log(users); //logs the updated user list
-    console.log(items); //logs the updated item list
+    console.log(arr); //logs the updated array
   } catch (error) {
     console.error(`Error writing array to ${filePath}: ${error}`);
   }
@@ -63,8 +72,8 @@ client.on("ready", () => {
   console.log("My current user name is : " + client.user.username);
   items = loadJsonFile(itemsFilePath, items); //Loads itemsArr with data from items.json
   users = loadJsonFile(usersFilePath, users); //Loads usersArr with data from users.json
+  suggestions = loadJsonFile(suggestionsFilePath, suggestions); //Loads suggestionsArr with data from suggestions.json
 
-  const channelId = "1220057482475339906";
   const channel = client.channels.cache.get(channelId);
 
   // Check if the channel exists
@@ -87,15 +96,20 @@ const modCommands = [
   " !remove",
   " !addMod", // isMod = true;
   " !removeMod", // isMod = false;
-  " !viewMod",
+  " !viewUser", // displays a user's information based on username, user id, or number
   " !deleteSuggestion",
   " !give",
   " !levelUp",
 ];
 //User Private Command List
-const userPrivateCommands = [" !suggest"];
+const userPrivateCommands = [
+  " !suggest", //stores a suggestion requires 3 arguments enclosed in quotes
+];
 //User Public Command List
-const userPublicCommands = [" !share", " !inventory"];
+const userPublicCommands = [
+  " !share", //shares a specific item based on 1 argument in quotes
+  " !inventory", //shares a list of all item names a user has
+];
 
 //BOT REQUIRED FUNCTIONS BELOW HERE===========================================================================
 
@@ -153,34 +167,52 @@ function runCommand(command, message, args) {
       handleHelpCommand(message);
       break;
     case "modhelp":
-      handleModHelpCommand(message);
+      if (checkModStatus(message)) {
+        handleModHelpCommand(message);
+      }
       break;
     case "edit":
-      handleEditCommand(message, args);
+      if (checkModStatus(message)) {
+        handleEditCommand(message, args);
+      }
       break;
     case "view":
-      handleViewCommand(message, args);
+      if (checkModStatus(message)) {
+        handleViewCommand(message, args);
+      }
       break;
     case "remove":
-      handleRemoveCommand(message, args);
+      if (checkModStatus(message)) {
+        handleRemoveCommand(message, args);
+      }
       break;
     case "addmod":
-      handleModStatusCommand(message, args, "addmod");
+      if (checkModStatus(message)) {
+        handleModStatusCommand(message, args, "addmod");
+      }
       break;
     case "removemod":
-      handleModStatusCommand(message, args, "removemod");
+      if (checkModStatus(message)) {
+        handleModStatusCommand(message, args, "removemod");
+      }
       break;
     case "viewmod":
-      handleViewModCommand(message);
+      if (checkModStatus(message)) {
+        handleViewUserCommand(message);
+      }
       break;
     case "deletesuggestion":
-      handleDeleteSuggestionCommand(message);
+      if (checkModStatus(message)) {
+        handleDeleteSuggestionCommand(message);
+      }
       break;
     case "give":
-      handleGiveCommand(message);
+      if (checkModStatus(message)) {
+        handleGiveCommand(message);
+      }
       break;
     case "suggest":
-      handleSuggestCommand(message);
+      handleSuggestCommand(message, args);
       break;
     case "share":
       handleShareCommand(message);
@@ -189,16 +221,19 @@ function runCommand(command, message, args) {
       handleInventoryCommand(message);
       break;
     case "levelup":
-      handleLevelUpCommand(message);
+      if (checkModStatus(message)) {
+        handleLevelUpCommand(message);
+      }
       break;
     default:
-      
-      const embed = new Discord.MessageEmbed()
-        .setDescription('Invalid command.')
-        .setImage('https://qph.cf2.quoracdn.net/main-qimg-0125930b81781949d403335295f19b04');
-
+      const embed = {
+        description: "Invalid command.",
+        image: {
+          url: "https://qph.cf2.quoracdn.net/main-qimg-0125930b81781949d403335295f19b04",
+        },
+      };
       message.channel.send({ embeds: [embed] });
-      break; // Add a break statement here to exit the default case block
+      break;
   }
 }
 //Creates a new user object and saves it to memory
@@ -271,7 +306,7 @@ function handleModHelpCommand(message) {
 }
 //stores a new item in memory with 4 arguments
 function handleStoreCommand(message, args) {
-  // Ensure at least 4 arguments are present
+  // Ensure at least 3 arguments are present
   if (args.length >= 4) {
     const newItem = {
       id: items.length + 1, //ID will count up from 1 rather than 0
@@ -345,7 +380,7 @@ function handleModStatusCommand(message, args, command) {
   }
 }
 //views moderator list
-function handleViewModCommand(message) {}
+function handleViewUserCommand(message) {}
 //deletes a suggestion @ index
 function handleDeleteSuggestionCommand(message) {}
 //gives an item to a user
@@ -362,8 +397,28 @@ function handleHelpCommand(message) {
   );
 }
 
-//Use !suggest to suggest an item (requires 4 arguments)
-function handleSuggestCommand(message, args) {}
+//Use !suggest to suggest an item (requires 3 arguments)
+function handleSuggestCommand(message, args) {
+  // Ensure at least 3 arguments are present
+  if (args.length >= 3) {
+    const newSuggestion = {
+      id: suggestions.length + 1, //ID will count up from 1 rather than 0
+      name: args[0].replace(/"/g, ""),
+      description: args[1].replace(/"/g, ""),
+      visualDescription: args[2].replace(/"/g, ""),
+    };
+    suggestions.push(newSuggestion);
+    message.channel.send(
+      `Elements stored: ${args.join(", ")} @ ${suggestions.length}`,
+    );
+    writeJsonFile(suggestionsFilePath, suggestions);
+    console.log("suggestions wrote to file");
+  } else {
+    message.channel.send(
+      "Invalid command. Please provide the 3 required elements (Name, Description, Visual Description) enclosed in quotes.",
+    );
+  }
+}
 
 //USER PUBLIC COMMAND AND FUNCTIONS BELOW HERE (Viewable to all in server) ---------------------------------------------------------
 

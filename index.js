@@ -489,7 +489,19 @@ function handleSuggestCommand(message, args) {
 
 //Use !share to share an item publicly
 function handleShareCommand(message) {}
-//Use ! inventory to view your inventory
-function handleInventoryCommand(message) {}
+
+//Use !inventory to view your inventory
+function handleInventoryCommand(message) {
+  let requestedInv = isExistingUser(message.author.id).index;
+  if(users[requestedInv].has.length === 0){
+    message.channel.send("You have no items in your inventory"); //displays a message if the user has no items in their inventory
+  }
+  else{
+    message.channel.send(
+      `Here is your inventory: ${users[requestedInv].has.join(", ")}`, //displays users inventory
+    )
+  }
+ 
+}
 
 client.login(token);

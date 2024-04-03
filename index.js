@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { Client, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
+const { arrayBuffer } = require("stream/consumers");
 const channelId = "1220057482475339906"; //main channel for interacting with the bot, bot is currently not limited to this channel, just says hi here when it's alive for now and goodbye when its shut off
 
 // TEMPORARY DATA STORAGE ===========================================
@@ -126,7 +127,6 @@ const userPublicCommands = [
   " !inventory", //shares a list of all item names a user has
 ];
 
-//BOT REQUIRED FUNCTIONS BELOW HERE===========================================================================
 
 //BOT  LISTENING CODE BLOCK
 client.on("messageCreate", (message) => {
@@ -230,7 +230,7 @@ function runCommand(command, message, args) {
       handleSuggestCommand(message, args);
       break;
     case "share":
-      handleShareCommand(message);
+      handleShareCommand(message, args);
       break;
     case "inventory":
       handleInventoryCommand(message);
@@ -282,6 +282,17 @@ function isExistingUser(identifier) {
   return { exists: false, index: -1 }; // Return false if the user is not found
 }
 
+function isExistingItem(identifier) {
+  const lowercaseIdentifier = identifier.toLowerCase();
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.name.toLowerCase() === lowercaseIdentifier) {
+      return { exists: true, index: i, name: item.name };
+    }
+  }
+  return { exists: false, index: -1 }; // Return false if the item is not found
+}
+
 // Function to update an existing user's information
 function updateExistingUser(userID, message) {
   let currentDisplayName = message.guild.members.cache.get(
@@ -299,6 +310,7 @@ function updateExistingUser(userID, message) {
     }
   }
 }
+//Function used to determine if a user is a mod
 function checkModStatus(message) {
   if (!users[isExistingUser(message.author.id).index].modStatus) {
     message.channel.send("You lack the permissions to use this command.");
@@ -306,6 +318,28 @@ function checkModStatus(message) {
   } else {
     return true;
   }
+}
+
+//helper function for share to determine if the user has the item in their inventory
+// function userHasItem(message, checkItem) {
+//   const requestedInv = isExistingUser(message.author.id).index;
+//   const userInventory = users[requestedInv].has;
+//   if (checkItem.name !== undefined) {
+//     return userInventory.some(
+//       (item) => item.toLowerCase() === checkItem.name.toString().toLowerCase(),
+//     ); 
+//   } else {
+//     return userInventory.some(
+//       (item) => item.toLowerCase() === checkItem.toString().toLowerCase(),
+//     ); 
+//   }
+// }
+
+function userHasItem(message, checkItem) {
+  const requestedInvIndex = isExistingUser(message.author.id).index;
+  const userInventory = users[requestedInvIndex].has;
+  const checkItemLower = typeof checkItem === 'object' ? checkItem.name.toString().toLowerCase() : checkItem.toLowerCase();
+  return userInventory.some(item => item.toLowerCase() === checkItemLower);
 }
 
 function embedImage(imagePath) {}
@@ -488,20 +522,52 @@ function handleSuggestCommand(message, args) {
 //USER PUBLIC COMMAND AND FUNCTIONS BELOW HERE (Viewable to all in server) ---------------------------------------------------------
 
 //Use !share to share an item publicly
-function handleShareCommand(message) {}
+function handleShareCommand(message, args) {
+
+  if (args.length !== 1) {
+    message.channel.send(
+      "Please provide exactly one argument: the name of the item you want to share in quotes.",
+    );
+    return;
+  }
+  const itemName = args[0].replace(/"/g, "").toLowerCase();
+  const itemToShare = isExistingItem(itemName); // Remove quotes and convert to lowercase and pulls item from list if it exists
+
+  if (itemToShare.exists) {
+    if (!userHasItem(message, itemToShare)) {
+      message.channel.send(
+        itemToShare.name +
+          " exists but is not in your inventory. Maybe you will have it someday! :3",
+      );
+    } else {
+      const itemString = prettifyJSON(JSON.stringify(items[itemToShare.index]));
+      message.channel.send(
+        `Here is the information for the item "${itemToShare.name}":\n${itemString}`,
+      );
+    }
+  } else {
+    if (userHasItem(message, itemName)) {
+      message.channel.send(
+        `Oops ${args[0]} not found in the masterlist but it is in your inventory. Please report this to the moderators.`,
+      );
+      return;
+    }
+    message.channel.send(
+      `${args[0]} does not exist. Please check your spelling or if you'd like to suggest a new item use !suggest.`,
+    );
+  }
+}
 
 //Use !inventory to view your inventory
 function handleInventoryCommand(message) {
   let requestedInv = isExistingUser(message.author.id).index;
-  if(users[requestedInv].has.length === 0){
+  if (users[requestedInv].has.length === 0) {
     message.channel.send("You have no items in your inventory"); //displays a message if the user has no items in their inventory
-  }
-  else{
+  } else {
     message.channel.send(
       `Here is your inventory: ${users[requestedInv].has.join(", ")}`, //displays users inventory
-    )
+    );
   }
- 
 }
 
 client.login(token);

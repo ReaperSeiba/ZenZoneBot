@@ -127,7 +127,6 @@ const userPublicCommands = [
   " !inventory", //shares a list of all item names a user has
 ];
 
-
 //BOT  LISTENING CODE BLOCK
 client.on("messageCreate", (message) => {
   let botIsAuthor = message.author.bot ? true : false; //true if bot is nauthor and false if bot is not author
@@ -321,25 +320,15 @@ function checkModStatus(message) {
 }
 
 //helper function for share to determine if the user has the item in their inventory
-// function userHasItem(message, checkItem) {
-//   const requestedInv = isExistingUser(message.author.id).index;
-//   const userInventory = users[requestedInv].has;
-//   if (checkItem.name !== undefined) {
-//     return userInventory.some(
-//       (item) => item.toLowerCase() === checkItem.name.toString().toLowerCase(),
-//     ); 
-//   } else {
-//     return userInventory.some(
-//       (item) => item.toLowerCase() === checkItem.toString().toLowerCase(),
-//     ); 
-//   }
-// }
 
 function userHasItem(message, checkItem) {
   const requestedInvIndex = isExistingUser(message.author.id).index;
   const userInventory = users[requestedInvIndex].has;
-  const checkItemLower = typeof checkItem === 'object' ? checkItem.name.toString().toLowerCase() : checkItem.toLowerCase();
-  return userInventory.some(item => item.toLowerCase() === checkItemLower);
+  const checkItemLower =
+    typeof checkItem === "object"
+      ? checkItem.name.toString().toLowerCase()
+      : checkItem.toLowerCase();
+  return userInventory.some((item) => item.toLowerCase() === checkItemLower);
 }
 
 function embedImage(imagePath) {}
@@ -376,7 +365,45 @@ function handleStoreCommand(message, args) {
   }
 }
 //edits an item in memory
-function handleEditCommand(message) {}
+function handleEditCommand(message, args) {
+  if (args.length !== 3) {
+    message.channel.send(
+      'Invalid command. Please provide a single item name you wish to edit, the property, and the replacement in quotes. Example: !edit "item name" "name" "new name"',
+    );
+    return;
+  }
+  const selectedItem = isExistingItem(args[0].replace(/"/g, ""));
+  if (selectedItem.exists) {
+    // Convert the user-provided property name to lowercase
+    const propertyName = args[1].toLowerCase().replace(/"/g, "");
+
+    // Check if the lowercase property name exists in the item object
+    const itemProperties = Object.keys(items[selectedItem.index]);
+    const matchingProperty = itemProperties.find(
+      (prop) => prop.toLowerCase() === propertyName,
+    );
+
+    if (matchingProperty) {
+      // Update the property value
+      const propertyValue = args[2].replace(/"/g, "");
+      items[selectedItem.index][matchingProperty] = propertyValue;
+      message.channel.send(
+        `Item "${args[0].replace(/"/g, "")}" edited: ${matchingProperty} = ${propertyValue}`,
+      );
+      writeJsonFile(itemsFilePath, items);
+    } else {
+      message.channel.send(
+        `Invalid property: ${args[1]}. Check your spelling and try again.`,
+      );
+    }
+  } else {
+    message.channel.send(
+      `Invalid item: ${args[0]}. Check your spelling and try again.`,
+    );
+    return;
+  }
+}
+
 //views an item in memory
 function handleViewCommand(message) {}
 //removes an item in memory
@@ -523,7 +550,6 @@ function handleSuggestCommand(message, args) {
 
 //Use !share to share an item publicly
 function handleShareCommand(message, args) {
-
   if (args.length !== 1) {
     message.channel.send(
       "Please provide exactly one argument: the name of the item you want to share in quotes.",

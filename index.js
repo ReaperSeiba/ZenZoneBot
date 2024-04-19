@@ -365,6 +365,7 @@ function handleStoreCommand(message, args) {
   }
 }
 //edits an item in memory
+//TODO: Update existing items in user inventory, example Namechange or convert names to index in user inventory!!
 function handleEditCommand(message, args) {
   if (args.length !== 3) {
     message.channel.send(
@@ -405,9 +406,62 @@ function handleEditCommand(message, args) {
 }
 
 //views an item in memory
-function handleViewCommand(message) {}
+//Requests the json data for an item and displays it
+function handleViewCommand(message, args) {
+  if (args.length !== 1) {
+    message.channel.send(
+      'Invalid command. Please provide a single item name you wish to view in quotes. Example: !view "item name"',
+    );
+    return;
+  }
+
+  const selectedItem = isExistingItem(args[0].replace(/"/g, ""));
+  if (selectedItem.exists) {
+    const item = items[selectedItem.index];
+    let itemProperties = "Properties of the item:\n";
+    for (const property in item) {
+      itemProperties += `${property}: ${item[property]}\n`;
+    }
+    message.channel.send(itemProperties);
+  } else {
+    message.channel.send(
+      `Invalid item: ${args[0]}. Check your spelling and try again.`,
+    );
+  }
+}
+
 //removes an item in memory
-function handleRemoveCommand(message) {}
+//deletes JSON data for an item, removes it from User inventorys, leaves an undefined index to keep the numbers in order (especially important for user inventory and levelup ids)
+function handleRemoveCommand(message, args) {
+  if (args.length !== 1) {
+    message.channel.send(
+      'Invalid command. Please provide a single item name you wish to remove in quotes. Example: !remove "item name"',
+    );
+    return;
+  }
+
+  const selectedItem = isExistingItem(args[0].replace(/"/g, ""));
+  if (selectedItem.exists) {
+    // Set all properties of the removed item to blank or undefined
+    const removedItem = items[selectedItem.index];
+    for (const prop in removedItem) {
+      removedItem[prop] = ""; // or undefined
+    }
+
+    message.channel.send(
+      `Item "${args[0].replace(/"/g, "")}" removed: ${JSON.stringify(
+        removedItem,
+      )}`,
+    );
+
+    writeJsonFile(itemsFilePath, items);
+  } else {
+    message.channel.send(
+      `Invalid item: ${args[0]}. Check your spelling and try again.`,
+    );
+  }
+}
+
 //used in both remove and add mod to change moderator status
 function handleModStatusCommand(message, args, command) {
   if (args.length < 1) {
@@ -424,7 +478,6 @@ function handleModStatusCommand(message, args, command) {
   }
 
   const selectedUser = users[userArgs.index];
-  // const modStatus = users[userIndex][3];
 
   switch (command) {
     case "addmod":

@@ -559,13 +559,13 @@ function handleViewUserCommand(message, args) {
 }
 
 //deletes a suggestion @ index
-function handleDeleteSuggestionCommand(message) {}
+function handleDeleteSuggestionCommand(message) {//should allow moderator to delete suggestion at index, will require looking at the suggestions json but handles the edit of the file to prevent erroring}
 //gives an item to a user
-function handleGiveCommand(message) {}
+function handleGiveCommand(message) {//needs user identification, needs item identification, and updates user inventory in users.json}
 //takes an item from a user
-function handleTakeCommand(message) {}
+function handleTakeCommand(message) {//removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json}}
 //level up an item
-function handleLevelUpCommand(message) {}
+function handleLevelUpCommand(message) {//needs user identification, needs item identification, and updates user inventory in users.json, updates using the items level up id if applicable}
 
 //USER PRIVATE COMMAND AND FUNCTIONS BELOW HERE (Viewable only to user who calls) --------------------------------------------------------
 

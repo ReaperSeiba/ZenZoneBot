@@ -217,12 +217,12 @@ function runCommand(command, message, args) {
       break;
     case "deletesuggestion":
       if (checkModStatus(message)) {
-        handleDeleteSuggestionCommand(message);
+        handleDeleteSuggestionCommand(message, args);
       }
       break;
     case "give":
       if (checkModStatus(message)) {
-        handleGiveCommand(message);
+        handleGiveCommand(message, args);
       }
       break;
     case "suggest":
@@ -236,7 +236,7 @@ function runCommand(command, message, args) {
       break;
     case "levelup":
       if (checkModStatus(message)) {
-        handleLevelUpCommand(message);
+        handleLevelUpCommand(message, args);
       }
       break;
     default:
@@ -291,7 +291,15 @@ function isExistingItem(identifier) {
   }
   return { exists: false, index: -1 }; // Return false if the item is not found
 }
-
+function isExistingSuggestion(identifier) {
+  for (let i = 0; i < suggestions.length; i++) {
+    const suggestion = suggestions[i];
+    if (suggestion.id === identifier) {
+      return { exists: true, index: i, name: suggestion.name };
+    }
+  }
+  return { exists: false, index: -1 }; // Return false if the item is not found
+}
 // Function to update an existing user's information
 function updateExistingUser(userID, message) {
   let currentDisplayName = message.guild.members.cache.get(
@@ -559,14 +567,39 @@ function handleViewUserCommand(message, args) {
 }
 
 //deletes a suggestion @ index
-function handleDeleteSuggestionCommand(message) {//should allow moderator to delete suggestion at index, will require looking at the suggestions json but handles the edit of the file to prevent erroring}
-//gives an item to a user
-function handleGiveCommand(message) {//needs user identification, needs item identification, and updates user inventory in users.json}
-//takes an item from a user
-function handleTakeCommand(message) {//removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json}}
-//level up an item
-function handleLevelUpCommand(message) {//needs user identification, needs item identification, and updates user inventory in users.json, updates using the items level up id if applicable}
+function handleDeleteSuggestionCommand(message, args) {
+  //should allow moderator to delete suggestion at index, will require looking at the suggestions json but handles the edit of the file to prevent erroring}
 
+  if (args.length !== 1) {
+    message.channel.send(
+      'Invalid command. Please provide the index of the suggestion you wish to delete in quotes. Example: !deleteSuggestion "1"',
+    );
+    return;
+  }
+  const index = parseInt(args[0].replace(/"/g, ""));
+  if (isExistingSuggestion(index).exists) {
+    const suggestion = suggestions[isExistingSuggestion(index).index];
+    suggestions.splice(isExistingSuggestion(index).index, 1);
+    writeJsonFile(suggestionsFilePath, suggestions);
+    message.channel.send(`Suggestion "${suggestion.name}" deleted.`);
+  } else {
+    message.channel.send(
+      `Invalid suggestion number: ${args}. Refer to the JSON file and try again.`,
+    );
+  }
+}
+//gives an item to a user
+function handleGiveCommand(message) {
+  //needs user identification, needs item identification, and updates user inventory in users.json}
+  //takes an item from a user
+}
+function handleTakeCommand(message) {
+  //removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json}}
+  //level up an item
+}
+function handleLevelUpCommand(message) {
+  //needs user identification, needs item identification, and updates user inventory in users.json, updates using the items level up id if applicable}
+}
 //USER PRIVATE COMMAND AND FUNCTIONS BELOW HERE (Viewable only to user who calls) --------------------------------------------------------
 
 //Use "!help" to display a list of user commands
@@ -580,16 +613,19 @@ function handleHelpCommand(message) {
 function handleSuggestCommand(message, args) {
   // Ensure at least 3 arguments are present
   if (args.length >= 3) {
+    if (suggestions.length > 0) {
+      idNum = suggestions[suggestions.length - 1].id + 1;
+    } else {
+      idNum = 1;
+    }
     const newSuggestion = {
-      id: suggestions.length + 1, //ID will count up from 1 rather than 0
+      id: idNum, //ID will count up from 1 rather than 0
       name: args[0].replace(/"/g, ""),
       description: args[1].replace(/"/g, ""),
       visualDescription: args[2].replace(/"/g, ""),
     };
     suggestions.push(newSuggestion);
-    message.channel.send(
-      `Elements stored: ${args.join(", ")} @ ${suggestions.length}`,
-    );
+    message.channel.send(`Elements stored: ${args.join(", ")} @ ${idNum}`);
     writeJsonFile(suggestionsFilePath, suggestions);
     console.log("suggestions wrote to file");
   } else {

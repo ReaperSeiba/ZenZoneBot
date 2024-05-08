@@ -4,7 +4,7 @@
     "name": "Pikachu",
     "description": "Electric",
     "image": "pikachu.jpg",
-    "levelUpID": "30"
+    "levelUpID": 2
   },
   {
     "id": 2,
@@ -25,21 +25,21 @@
     "name": "Charmander",
     "description": "Fire",
     "image": "charmander",
-    "levelUpID": "charmeleon"
+    "levelUpID": 5
   },
   {
     "id": 5,
-    "name": "Charmander",
+    "name": "Charmeleon",
     "description": "Fire",
     "image": "charmander",
-    "levelUpID": "charmeleon"
+    "levelUpID": 6
   },
   {
     "id": 6,
-    "name": "Charmander",
+    "name": "Charizard",
     "description": "Fire",
     "image": "charmander",
-    "levelUpID": "charmeleon"
+    "levelUpID": ""
   },
   {
     "id": 7,

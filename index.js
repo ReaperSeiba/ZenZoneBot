@@ -225,6 +225,11 @@ function runCommand(command, message, args) {
         handleGiveCommand(message, args);
       }
       break;
+    case "take":
+      if (checkModStatus(message)) {
+        handleTakeCommand(message, args);
+      }
+      break;
     case "suggest":
       handleSuggestCommand(message, args);
       break;
@@ -602,7 +607,6 @@ function handleGiveCommand(message, args) {
   }
   const userIdentifier = args[0].replace(/"/g, "");
   const itemIdentifier = args[1].replace(/"/g, "");
-  console.log(userIdentifier + itemIdentifier);
   if (!isExistingUser(userIdentifier).exists) {
     message.channel.send("User not found. " + args[0]);
     return;
@@ -626,11 +630,77 @@ function handleGiveCommand(message, args) {
 }
 //takes an item from a user
 function handleTakeCommand(message, args) {
-  //removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json}}
+  //removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json
+  if (args.length !== 2) {
+    message.channel.send(
+      'Invalid command. Please provide the username (Not display name), userID, or userIndex in quotes, and the item name or id in quotes to take an item from a user. Example "user" "1"',
+    );
+    return;
+  }
+  const userIdentifier = args[0].replace(/"/g, "");
+  const itemIdentifier = args[1].replace(/"/g, "");
+  if (!isExistingUser(userIdentifier).exists) {
+    message.channel.send("User not found. " + args[0]);
+    return;
+  }
+  if (!isExistingItem(itemIdentifier).exists) {
+    message.channel.send("Item not found. " + args[1]);
+    return;
+  }
+  const selectedUser = users[isExistingUser(userIdentifier).index];
+  const selectedItem = items[isExistingItem(itemIdentifier).index];
+  if (selectedUser.has.includes(selectedItem.name)) {
+    selectedUser.has.splice(selectedUser.has.indexOf(selectedItem.name), 1);
+    writeJsonFile(usersFilePath, users);
+    message.channel.send(
+      `Item "${selectedItem.name}" was taken from ${selectedUser.username}`,
+    );
+  } else {
+    message.channel.send("User does not have that item");
+    return;
+  }
   //level up an item
 }
 function handleLevelUpCommand(message, args) {
   //needs user identification, needs item identification, and updates user inventory in users.json, updates using the items level up id if applicable}
+  if (args.length !== 2) {
+    message.channel.send(
+      'Invalid command. Please provide the username (Not display name), userID, or userIndex in quotes, and the item name or item id you wish to level up Example "user" "1"',
+    );
+    return;
+  }
+  const userIdentifier = args[0].replace(/"/g, "");
+  const itemIdentifier = args[1].replace(/"/g, "");
+  if (!isExistingUser(userIdentifier).exists) {
+    message.channel.send("User not found. " + args[0]);
+    return;
+  }
+  if (!isExistingItem(itemIdentifier).exists) {
+    message.channel.send("Item not found. " + args[1]);
+    return;
+  }
+  const selectedUser = users[isExistingUser(userIdentifier).index];
+  const selectedItem = items[isExistingItem(itemIdentifier).index];
+  if (selectedUser.has.includes(selectedItem.name)) {
+    if (selectedItem.levelUpID === "") {
+      message.channel.send("This item cannot be levelled up");
+      return;
+    } else {
+      const levelUpItem = items[selectedItem.levelUpID - 1];
+      selectedUser.has.splice(selectedUser.has.indexOf(levelUpItem.name), 1);
+      writeJsonFile(usersFilePath, users);
+      message.channel.send(
+        `Item "${selectedItem.name}" was taken to be upgraded for ${selectedUser.username}`,
+      );
+      selectedUser.has.push(levelUpItem.name);
+      writeJsonFile(usersFilePath, users);
+      message.channel.send(
+        `Item has evolved into "${levelUpItem.name}" and was given to ${selectedUser.username}`,
+      );
+    }
+  } else {
+    message.channel.send("User does not have that item");
+  }
 }
 //USER PRIVATE COMMAND AND FUNCTIONS BELOW HERE (Viewable only to user who calls) --------------------------------------------------------
 

@@ -285,7 +285,10 @@ function isExistingItem(identifier) {
   const lowercaseIdentifier = identifier.toLowerCase();
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (item.name.toLowerCase() === lowercaseIdentifier) {
+    if (
+      item.name.toLowerCase() === lowercaseIdentifier ||
+      item.id === Number(identifier)
+    ) {
       return { exists: true, index: i, name: item.name };
     }
   }
@@ -589,15 +592,44 @@ function handleDeleteSuggestionCommand(message, args) {
   }
 }
 //gives an item to a user
-function handleGiveCommand(message) {
+function handleGiveCommand(message, args) {
   //needs user identification, needs item identification, and updates user inventory in users.json}
-  //takes an item from a user
+  if (args.length !== 2) {
+    message.channel.send(
+      'Invalid command. Please provide the username (Not display name), userID, or userIndex in quotes, and the item name or id in quotes to give an item to a user. Example "user" "1"',
+    );
+    return;
+  }
+  const userIdentifier = args[0].replace(/"/g, "");
+  const itemIdentifier = args[1].replace(/"/g, "");
+  console.log(userIdentifier + itemIdentifier);
+  if (!isExistingUser(userIdentifier).exists) {
+    message.channel.send("User not found. " + args[0]);
+    return;
+  }
+  if (!isExistingItem(itemIdentifier).exists) {
+    message.channel.send("Item not found. " + args[1]);
+    return;
+  }
+  const selectedUser = users[isExistingUser(userIdentifier).index];
+  const selectedItem = items[isExistingItem(itemIdentifier).index];
+  if (selectedUser.has.includes(selectedItem.name)) {
+    message.channel.send("User already has this item");
+    return;
+  } else {
+    selectedUser.has.push(selectedItem.name);
+    writeJsonFile(usersFilePath, users);
+    message.channel.send(
+      `Item "${selectedItem.name}" given to ${selectedUser.username}`,
+    );
+  }
 }
-function handleTakeCommand(message) {
+//takes an item from a user
+function handleTakeCommand(message, args) {
   //removes an item from a user, needs user identification, needs item identification, and updates user inventory in users.json}}
   //level up an item
 }
-function handleLevelUpCommand(message) {
+function handleLevelUpCommand(message, args) {
   //needs user identification, needs item identification, and updates user inventory in users.json, updates using the items level up id if applicable}
 }
 //USER PRIVATE COMMAND AND FUNCTIONS BELOW HERE (Viewable only to user who calls) --------------------------------------------------------

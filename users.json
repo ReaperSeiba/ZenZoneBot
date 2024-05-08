@@ -4,7 +4,14 @@
     "userID": "1196190752166924290",
     "username": "evie_insanecat",
     "modStatus": true,
-    "has": ["0", "1", "2", "Gengar"],
+    "has": [
+      "0",
+      "1",
+      "2",
+      "Gengar",
+      "Pikachu",
+      "Raichu"
+    ],
     "displayname": [
       "Evie"
     ]

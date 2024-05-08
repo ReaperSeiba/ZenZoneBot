@@ -1,4 +1,0 @@
-// Handle SIGTERM signal on shutdown ===================================================================
-process.on("SIGTERM", () => {
-    console.log("Received SIGTERM signal. Shutting down...");
-})

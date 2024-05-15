@@ -16,7 +16,7 @@ client.once("ready", async () => {
     try {
         await registerSlashCommands();
         const channel = client.channels.cache.get(channelId);
-         channel.send("Hi! I'm alive! :3");
+        channel.send("Hi! I'm alive! :3");
     } catch (error) {
         console.error("Error registering commands:", error);
     }
@@ -25,11 +25,11 @@ client.once("ready", async () => {
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    const { commandName } = interaction;
+    const { commandName, options } = interaction;
 
     switch (commandName) {
         case "store":
-            await handleStoreCommand(interaction);
+            await handleStoreCommand(interaction, options);
             break;
         // Add cases for other slash commands
         default:
@@ -43,26 +43,42 @@ async function registerSlashCommands() {
         {
             name: "store",
             description: "Stores an item",
-            // Add more commands as needed
+            options: [
+                {
+                    name: "name",
+                    description: "Name of the item",
+                    type: 3, // Use the integer value for STRING
+                    required: true,
+                },
+                {
+                    name: "color",
+                    description: "Color of the item",
+                    type: 3, // Use the integer value for STRING
+                    required: true,
+                },
+            ],
         },
         // Add more commands as needed
     ];
+
     console.log("Commands registered!");
 
     const commandData = commands.map((command) => ({
         name: command.name,
         description: command.description,
+        options: command.options,
     }));
 
-    console.log(commandData);
-
-    await client.application.commands.set(commandData);
+    try {
+        await client.application.commands.set(commandData);
+        console.log("Slash commands registered successfully!");
+    } catch (error) {
+        console.error("Error registering slash commands:", error);
+    }
 }
 
-async function handleStoreCommand(interaction) {
-    // Your store command logic here
-    await interaction.reply("Store command executed.");
-}
+// Call the registerSlashCommands function somewhere in your code
+registerSlashCommands();
 
 // Add more functions for other slash commands as needed
 

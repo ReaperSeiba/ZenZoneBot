@@ -1,0 +1,33 @@
+ Elements to Recreate:
+Discord.js Dependencies: Required libraries for Discord bot functionality.
+File Paths: Paths for storing JSON files.
+Data Storage Arrays: Arrays for storing items, users, and suggestions.
+JSON Functions: Functions to read and write JSON files.
+Discord Client Setup: Configuration for Discord bot client.
+Ready Event Handling: Code executed when the bot is ready.
+Message Event Handling: Logic for handling incoming messages.
+User Management Functions: Functions to add, update, and check user information.
+Item Management Functions: Functions for managing items, including addition, removal, and viewing.
+Command Parsing and Execution: Logic for parsing user commands and executing corresponding actions.
+List of Commands:
+Moderator Commands:
+
+!store: Store a new item.
+!edit: Edit an existing item.
+!view: View details of an item.
+!remove: Remove an item.
+!addMod: Grant moderator status to a user.
+!removeMod: Revoke moderator status from a user.
+!viewUser: View user information.
+!deleteSuggestion: Delete a suggestion.
+!give: Give an item to a user.
+!take: Take an item from a user.
+!viewSuggestions: View suggestions.
+!levelUp: Level up an item.
+User Private Commands:
+
+!suggest: Suggest an item.
+User Public Commands:
+
+!share: Share an item.
+!inventory: View your inventory.
